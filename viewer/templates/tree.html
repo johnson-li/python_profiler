@@ -1,0 +1,99 @@
+<link class="cssdeck" rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.1/css/bootstrap-responsive.min.css"
+      class="cssdeck">
+<body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<style type="text/css">
+    .tree-toggler.nav-header {
+        color: blue;
+        font-size: small;
+    }
+</style>
+
+<div class="well" style="padding: 8px 0;">
+    <div style="overflow-y: scroll; overflow-x: hidden;">
+        <ul class="nav nav-list tree">
+            <li>
+                <label class="tree-toggler nav-header" data-toggle="collapse" data-target="#parameter">parameter</label>
+                <div id="parameter">
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="well" style="padding: 8px 0;">
+    <div id="container" style="overflow-y: scroll; overflow-x: hidden;">
+    </div>
+</div>
+
+<script class="cssdeck" src="/static/jquery.min.js"></script>
+<script class="cssdeck">
+    $(document).ready(function () {
+        $('label.tree-toggler').click(function () {
+            $(this).parent().children('ul.tree').toggle(300);
+        });
+        $('label.tree-toggler').parent().children('ul.tree').slice(1, -1).toggle(0);
+    });
+
+    element = document.getElementById('container');
+
+    function createUl() {
+        var ul = document.createElement("ul");
+        ul.setAttribute("class", "nav nav-list tree");
+        return ul
+    }
+
+    function encodeStr(str) {
+        str = str.replace(new RegExp("<", "g"), "&lt;");
+        str = str.replace(new RegExp(">", "g"), "&gt;");
+        return str;
+    }
+
+    function visitTree(json, parentElement) {
+        for (var key in json) {
+            var val = json[key];
+            var liElement = document.createElement('li');
+            parentElement.appendChild(liElement);
+            if ($.isArray(val)) {
+                if (val.length > 0) {
+                    var labelElement = document.createElement('label');
+                    labelElement.setAttribute("class", "tree-toggler nav-header");
+                    labelElement.innerHTML = encodeStr(key);
+                    liElement.appendChild(labelElement);
+                    var ul = createUl();
+                    liElement.appendChild(ul);
+                    visitTree(val, ul)
+                } else {
+                    var link = document.createElement('a');
+                    link.innerHTML = encodeStr(key);
+                    liElement.appendChild(link);
+                }
+            }
+            else if (!$.isArray(val) && typeof val == typeof {}) {
+                visitTree(val, parentElement);
+            } else {
+                var link = document.createElement('a');
+                link.innerHTML = encodeStr(val);
+                liElement.appendChild(link);
+            }
+        }
+    }
+
+    var json_str = '{{ json_str|safe }}';
+    var json = JSON.parse(json_str);
+    var ul = createUl();
+    element.appendChild(ul);
+    visitTree(json, ul);
+    var parameter = '{{ parameter|safe }}';
+    if (parameter) {
+        var ele = document.createElement('pre');
+        ele.innerHTML = JSON.stringify(JSON.parse(parameter), null, 2);
+        document.getElementById('parameter').appendChild(ele);
+    }
+</script>
+</body>
+
